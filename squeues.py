@@ -48,7 +48,9 @@ def _serializable_queue(queue_class, serialize, deserialize):
             try:
                 s = super().peek()
             except AttributeError as ex:
-                raise NotImplementedError("The underlying queue class does not implement 'peek'") from ex
+                raise NotImplementedError(
+                    "The underlying queue class does not implement 'peek'"
+                ) from ex
             if s:
                 return deserialize(s)
 
@@ -95,6 +97,7 @@ def _scrapy_serialization_queue(queue_class):
 def _scrapy_non_serialization_queue(queue_class):
 
     class ScrapyRequestQueue(queue_class):
+
         @classmethod
         def from_crawler(cls, crawler, *args, **kwargs):
             return cls()
@@ -109,7 +112,9 @@ def _scrapy_non_serialization_queue(queue_class):
             try:
                 s = super().peek()
             except AttributeError as ex:
-                raise NotImplementedError("The underlying queue class does not implement 'peek'") from ex
+                raise NotImplementedError(
+                    "The underlying queue class does not implement 'peek'"
+                ) from ex
             return s
 
     return ScrapyRequestQueue
@@ -125,34 +130,25 @@ def _pickle_serialize(obj):
 
 
 _PickleFifoSerializationDiskQueue = _serializable_queue(
-    _with_mkdir(queue.FifoDiskQueue),
-    _pickle_serialize,
-    pickle.loads
-)
+    _with_mkdir(queue.FifoDiskQueue), _pickle_serialize, pickle.loads)
 _PickleLifoSerializationDiskQueue = _serializable_queue(
-    _with_mkdir(queue.LifoDiskQueue),
-    _pickle_serialize,
-    pickle.loads
-)
+    _with_mkdir(queue.LifoDiskQueue), _pickle_serialize, pickle.loads)
 _MarshalFifoSerializationDiskQueue = _serializable_queue(
-    _with_mkdir(queue.FifoDiskQueue),
-    marshal.dumps,
-    marshal.loads
-)
+    _with_mkdir(queue.FifoDiskQueue), marshal.dumps, marshal.loads)
 _MarshalLifoSerializationDiskQueue = _serializable_queue(
-    _with_mkdir(queue.LifoDiskQueue),
-    marshal.dumps,
-    marshal.loads
-)
+    _with_mkdir(queue.LifoDiskQueue), marshal.dumps, marshal.loads)
 
 # public queue classes
-PickleFifoDiskQueue = _scrapy_serialization_queue(_PickleFifoSerializationDiskQueue)
-PickleLifoDiskQueue = _scrapy_serialization_queue(_PickleLifoSerializationDiskQueue)
-MarshalFifoDiskQueue = _scrapy_serialization_queue(_MarshalFifoSerializationDiskQueue)
-MarshalLifoDiskQueue = _scrapy_serialization_queue(_MarshalLifoSerializationDiskQueue)
+PickleFifoDiskQueue = _scrapy_serialization_queue(
+    _PickleFifoSerializationDiskQueue)
+PickleLifoDiskQueue = _scrapy_serialization_queue(
+    _PickleLifoSerializationDiskQueue)
+MarshalFifoDiskQueue = _scrapy_serialization_queue(
+    _MarshalFifoSerializationDiskQueue)
+MarshalLifoDiskQueue = _scrapy_serialization_queue(
+    _MarshalLifoSerializationDiskQueue)
 FifoMemoryQueue = _scrapy_non_serialization_queue(queue.FifoMemoryQueue)
 LifoMemoryQueue = _scrapy_non_serialization_queue(queue.LifoMemoryQueue)
-
 
 # deprecated queue classes
 _subclass_warn_message = "{cls} inherits from deprecated class {old}"

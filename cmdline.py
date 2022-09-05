@@ -1,16 +1,17 @@
-import sys
-import os
 import argparse
 import cProfile
 import inspect
+import os
+import sys
+
 import pkg_resources
 
 import scrapy
-from scrapy.crawler import CrawlerProcess
 from scrapy.commands import ScrapyCommand, ScrapyHelpFormatter
+from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import UsageError
 from scrapy.utils.misc import walk_modules
-from scrapy.utils.project import inside_project, get_project_settings
+from scrapy.utils.project import get_project_settings, inside_project
 from scrapy.utils.python import garbage_collect
 
 
@@ -19,12 +20,9 @@ def _iter_command_classes(module_name):
     # scrapy.utils.spider.iter_spider_classes
     for module in walk_modules(module_name):
         for obj in vars(module).values():
-            if (
-                inspect.isclass(obj)
-                and issubclass(obj, ScrapyCommand)
-                and obj.__module__ == module.__name__
-                and not obj == ScrapyCommand
-            ):
+            if (inspect.isclass(obj) and issubclass(obj, ScrapyCommand)
+                    and obj.__module__ == module.__name__
+                    and not obj == ScrapyCommand):
                 yield obj
 
 
@@ -84,7 +82,9 @@ def _print_commands(settings, inproject):
         print(f"  {cmdname:<13} {cmdclass.short_desc()}")
     if not inproject:
         print()
-        print("  [ more ]      More commands available when run from project directory")
+        print(
+            "  [ more ]      More commands available when run from project directory"
+        )
     print()
     print('Use "scrapy <command> -h" to see more info about a command')
 
@@ -155,7 +155,8 @@ def _run_command(cmd, args, opts):
 
 def _run_command_profiled(cmd, args, opts):
     if opts.profile:
-        sys.stderr.write(f"scrapy: writing cProfile stats to {opts.profile!r}\n")
+        sys.stderr.write(
+            f"scrapy: writing cProfile stats to {opts.profile!r}\n")
     loc = locals()
     p = cProfile.Profile()
     p.runctx('cmd.run(args, opts)', globals(), loc)

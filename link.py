@@ -36,18 +36,14 @@ class Link:
         self.nofollow = nofollow
 
     def __eq__(self, other):
-        return (
-            self.url == other.url
-            and self.text == other.text
-            and self.fragment == other.fragment
-            and self.nofollow == other.nofollow
-        )
+        return (self.url == other.url and self.text == other.text
+                and self.fragment == other.fragment
+                and self.nofollow == other.nofollow)
 
     def __hash__(self):
-        return hash(self.url) ^ hash(self.text) ^ hash(self.fragment) ^ hash(self.nofollow)
+        return hash(self.url) ^ hash(self.text) ^ hash(self.fragment) ^ hash(
+            self.nofollow)
 
     def __repr__(self):
-        return (
-            f'Link(url={self.url!r}, text={self.text!r}, '
-            f'fragment={self.fragment!r}, nofollow={self.nofollow!r})'
-        )
+        return (f'Link(url={self.url!r}, text={self.text!r}, '
+                f'fragment={self.fragment!r}, nofollow={self.nofollow!r})')

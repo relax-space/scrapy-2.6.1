@@ -1,9 +1,8 @@
-import sys
 import logging
+import sys
 from abc import ABCMeta, abstractmethod
 
 from scrapy.utils.python import to_unicode
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +27,7 @@ def decode_robotstxt(robotstxt_body, spider, to_native_str_type=False):
 
 
 class RobotParser(metaclass=ABCMeta):
+
     @classmethod
     @abstractmethod
     def from_crawler(cls, crawler, robotstxt_body):
@@ -56,10 +56,13 @@ class RobotParser(metaclass=ABCMeta):
 
 
 class PythonRobotParser(RobotParser):
+
     def __init__(self, robotstxt_body, spider):
         from urllib.robotparser import RobotFileParser
         self.spider = spider
-        robotstxt_body = decode_robotstxt(robotstxt_body, spider, to_native_str_type=True)
+        robotstxt_body = decode_robotstxt(robotstxt_body,
+                                          spider,
+                                          to_native_str_type=True)
         self.rp = RobotFileParser()
         self.rp.parse(robotstxt_body.splitlines())
 
@@ -76,6 +79,7 @@ class PythonRobotParser(RobotParser):
 
 
 class ReppyRobotParser(RobotParser):
+
     def __init__(self, robotstxt_body, spider):
         from reppy.robots import Robots
         self.spider = spider
@@ -92,6 +96,7 @@ class ReppyRobotParser(RobotParser):
 
 
 class RerpRobotParser(RobotParser):
+
     def __init__(self, robotstxt_body, spider):
         from robotexclusionrulesparser import RobotExclusionRulesParser
         self.spider = spider
@@ -112,6 +117,7 @@ class RerpRobotParser(RobotParser):
 
 
 class ProtegoRobotParser(RobotParser):
+
     def __init__(self, robotstxt_body, spider):
         from protego import Protego
         self.spider = spider

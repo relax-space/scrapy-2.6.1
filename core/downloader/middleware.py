@@ -5,15 +5,14 @@ See documentation in docs/topics/downloader-middleware.rst
 """
 from typing import Callable, Union, cast
 
-from twisted.internet import defer
-from twisted.python.failure import Failure
-
 from scrapy import Spider
 from scrapy.exceptions import _InvalidOutput
 from scrapy.http import Request, Response
 from scrapy.middleware import MiddlewareManager
-from scrapy.utils.defer import mustbe_deferred, deferred_from_coro
 from scrapy.utils.conf import build_component_list
+from scrapy.utils.defer import deferred_from_coro, mustbe_deferred
+from twisted.internet import defer
+from twisted.python.failure import Failure
 
 
 class DownloaderMiddlewareManager(MiddlewareManager):
@@ -33,17 +32,20 @@ class DownloaderMiddlewareManager(MiddlewareManager):
         if hasattr(mw, 'process_exception'):
             self.methods['process_exception'].appendleft(mw.process_exception)
 
-    def download(self, download_func: Callable, request: Request, spider: Spider):
+    def download(self, download_func: Callable, request: Request,
+                 spider: Spider):
+
         @defer.inlineCallbacks
         def process_request(request: Request):
             for method in self.methods['process_request']:
                 method = cast(Callable, method)
-                response = yield deferred_from_coro(method(request=request, spider=spider))
-                if response is not None and not isinstance(response, (Response, Request)):
+                response = yield deferred_from_coro(
+                    method(request=request, spider=spider))
+                if response is not None and not isinstance(
+                        response, (Response, Request)):
                     raise _InvalidOutput(
                         f"Middleware {method.__qualname__} must return None, Response or "
-                        f"Request, got {response.__class__.__name__}"
-                    )
+                        f"Request, got {response.__class__.__name__}")
                 if response:
                     return response
             return (yield download_func(request=request, spider=spider))
@@ -57,12 +59,12 @@ class DownloaderMiddlewareManager(MiddlewareManager):
 
             for method in self.methods['process_response']:
                 method = cast(Callable, method)
-                response = yield deferred_from_coro(method(request=request, response=response, spider=spider))
+                response = yield deferred_from_coro(
+                    method(request=request, response=response, spider=spider))
                 if not isinstance(response, (Response, Request)):
                     raise _InvalidOutput(
                         f"Middleware {method.__qualname__} must return Response or Request, "
-                        f"got {type(response)}"
-                    )
+                        f"got {type(response)}")
                 if isinstance(response, Request):
                     return response
             return response
@@ -72,12 +74,14 @@ class DownloaderMiddlewareManager(MiddlewareManager):
             exception = failure.value
             for method in self.methods['process_exception']:
                 method = cast(Callable, method)
-                response = yield deferred_from_coro(method(request=request, exception=exception, spider=spider))
-                if response is not None and not isinstance(response, (Response, Request)):
+                response = yield deferred_from_coro(
+                    method(request=request, exception=exception,
+                           spider=spider))
+                if response is not None and not isinstance(
+                        response, (Response, Request)):
                     raise _InvalidOutput(
                         f"Middleware {method.__qualname__} must return None, Response or "
-                        f"Request, got {type(response)}"
-                    )
+                        f"Request, got {type(response)}")
                 if response:
                     return response
             return failure

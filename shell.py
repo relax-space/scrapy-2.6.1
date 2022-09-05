@@ -7,7 +7,7 @@ import os
 import signal
 
 from itemadapter import is_item
-from twisted.internet import threads, defer
+from twisted.internet import defer, threads
 from twisted.python import threadable
 from w3lib.url import any_to_uri
 
@@ -36,7 +36,12 @@ class Shell:
         self.code = code
         self.vars = {}
 
-    def start(self, url=None, request=None, response=None, spider=None, redirect=True):
+    def start(self,
+              url=None,
+              request=None,
+              response=None,
+              spider=None,
+              redirect=True):
         # disable accidental Ctrl-C key press from shutting down the engine
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         if url:
@@ -72,7 +77,8 @@ class Shell:
                 shells += DEFAULT_PYTHON_SHELLS.keys()
             # always add standard shell as fallback
             shells += ['python']
-            start_python_console(self.vars, shells=shells,
+            start_python_console(self.vars,
+                                 shells=shells,
                                  banner=self.vars.pop('banner', ''))
 
     def _schedule(self, request, spider):
@@ -102,7 +108,8 @@ class Shell:
             url = any_to_uri(request_or_url)
             request = Request(url, dont_filter=True, **kwargs)
             if redirect:
-                request.meta['handle_httpstatus_list'] = SequenceExclude(range(300, 400))
+                request.meta['handle_httpstatus_list'] = SequenceExclude(
+                    range(300, 400))
             else:
                 request.meta['handle_httpstatus_all'] = True
         response = None
@@ -137,14 +144,18 @@ class Shell:
     def get_help(self):
         b = []
         b.append("Available Scrapy objects:")
-        b.append("  scrapy     scrapy module (contains scrapy.Request, scrapy.Selector, etc)")
+        b.append(
+            "  scrapy     scrapy module (contains scrapy.Request, scrapy.Selector, etc)"
+        )
         for k, v in sorted(self.vars.items()):
             if self._is_relevant(v):
                 b.append(f"  {k:<10} {v}")
         b.append("Useful shortcuts:")
         if self.inthread:
-            b.append("  fetch(url[, redirect=True]) "
-                     "Fetch URL and update local objects (by default, redirects are followed)")
+            b.append(
+                "  fetch(url[, redirect=True]) "
+                "Fetch URL and update local objects (by default, redirects are followed)"
+            )
             b.append("  fetch(req)                  "
                      "Fetch a scrapy.Request and update local objects ")
         b.append("  shelp()           Shell help (print this help)")

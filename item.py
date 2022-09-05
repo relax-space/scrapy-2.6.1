@@ -25,7 +25,8 @@ class ItemMeta(ABCMeta):
 
     def __new__(mcs, class_name, bases, attrs):
         classcell = attrs.pop('__classcell__', None)
-        new_bases = tuple(base._class for base in bases if hasattr(base, '_class'))
+        new_bases = tuple(base._class for base in bases
+                          if hasattr(base, '_class'))
         _class = super().__new__(mcs, 'x_' + class_name, new_bases, attrs)
 
         fields = getattr(_class, 'fields', {})
@@ -82,7 +83,8 @@ class Item(MutableMapping, object_ref, metaclass=ItemMeta):
         if key in self.fields:
             self._values[key] = value
         else:
-            raise KeyError(f"{self.__class__.__name__} does not support field: {key}")
+            raise KeyError(
+                f"{self.__class__.__name__} does not support field: {key}")
 
     def __delitem__(self, key):
         del self._values[key]
@@ -94,7 +96,8 @@ class Item(MutableMapping, object_ref, metaclass=ItemMeta):
 
     def __setattr__(self, name, value):
         if not name.startswith('_'):
-            raise AttributeError(f"Use item[{name!r}] = {value!r} to set field value")
+            raise AttributeError(
+                f"Use item[{name!r}] = {value!r} to set field value")
         super().__setattr__(name, value)
 
     def __len__(self):

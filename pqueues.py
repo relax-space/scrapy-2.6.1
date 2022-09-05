@@ -3,7 +3,6 @@ import logging
 
 from scrapy.utils.misc import create_instance
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +17,8 @@ def _path_safe(text):
     >>> _path_safe('some@symbol?').startswith('some_symbol_')
     True
     """
-    pathable_slot = "".join([c if c.isalnum() or c in '-._' else '_' for c in text])
+    pathable_slot = "".join(
+        [c if c.isalnum() or c in '-._' else '_' for c in text])
     # as we replace some letters we can get collision for different slots
     # add we add unique part
     unique_slot = hashlib.md5(text.encode('utf8')).hexdigest()
@@ -133,7 +133,8 @@ class DownloaderInterface:
         self.downloader = crawler.engine.downloader
 
     def stats(self, possible_slots):
-        return [(self._active_downloads(slot), slot) for slot in possible_slots]
+        return [(self._active_downloads(slot), slot)
+                for slot in possible_slots]
 
     def get_slot_key(self, request):
         return self.downloader._get_slot_key(request, None)
@@ -157,7 +158,9 @@ class DownloaderAwarePriorityQueue:
 
     def __init__(self, crawler, downstream_queue_cls, key, slot_startprios=()):
         if crawler.settings.getint('CONCURRENT_REQUESTS_PER_IP') != 0:
-            raise ValueError(f'"{self.__class__}" does not support CONCURRENT_REQUESTS_PER_IP')
+            raise ValueError(
+                f'"{self.__class__}" does not support CONCURRENT_REQUESTS_PER_IP'
+            )
 
         if slot_startprios and not isinstance(slot_startprios, dict):
             raise ValueError("DownloaderAwarePriorityQueue accepts "
@@ -225,7 +228,8 @@ class DownloaderAwarePriorityQueue:
         return active
 
     def __len__(self):
-        return sum(len(x) for x in self.pqueues.values()) if self.pqueues else 0
+        return sum(len(x)
+                   for x in self.pqueues.values()) if self.pqueues else 0
 
     def __contains__(self, slot):
         return slot in self.pqueues

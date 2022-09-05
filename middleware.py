@@ -1,15 +1,15 @@
 import logging
 import pprint
 from collections import defaultdict, deque
-from typing import Callable, Deque, Dict, Optional, cast, Iterable
+from typing import Callable, Deque, Dict, Iterable, Optional, cast
 
 from twisted.internet.defer import Deferred
 
 from scrapy import Spider
 from scrapy.exceptions import NotConfigured
 from scrapy.settings import Settings
+from scrapy.utils.defer import process_chain, process_parallel
 from scrapy.utils.misc import create_instance, load_object
-from scrapy.utils.defer import process_parallel, process_chain
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +44,16 @@ class MiddlewareManager:
             except NotConfigured as e:
                 if e.args:
                     clsname = clspath.split('.')[-1]
-                    logger.warning("Disabled %(clsname)s: %(eargs)s",
-                                   {'clsname': clsname, 'eargs': e.args[0]},
+                    logger.warning("Disabled %(clsname)s: %(eargs)s", {
+                        'clsname': clsname,
+                        'eargs': e.args[0]
+                    },
                                    extra={'crawler': crawler})
 
-        logger.info("Enabled %(componentname)ss:\n%(enabledlist)s",
-                    {'componentname': cls.component_name,
-                     'enabledlist': pprint.pformat(enabled)},
+        logger.info("Enabled %(componentname)ss:\n%(enabledlist)s", {
+            'componentname': cls.component_name,
+            'enabledlist': pprint.pformat(enabled)
+        },
                     extra={'crawler': crawler})
         return cls(*middlewares)
 

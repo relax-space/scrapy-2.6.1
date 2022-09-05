@@ -1,16 +1,15 @@
 import random
-from time import time
-from datetime import datetime
 from collections import deque
+from datetime import datetime
+from time import time
 
-from twisted.internet import defer, task
-
+from scrapy import signals
+from scrapy.core.downloader.handlers import DownloadHandlers
+from scrapy.core.downloader.middleware import DownloaderMiddlewareManager
+from scrapy.resolver import dnscache
 from scrapy.utils.defer import mustbe_deferred
 from scrapy.utils.httpobj import urlparse_cached
-from scrapy.resolver import dnscache
-from scrapy import signals
-from scrapy.core.downloader.middleware import DownloaderMiddlewareManager
-from scrapy.core.downloader.handlers import DownloadHandlers
+from twisted.internet import defer, task
 
 
 class Slot:
@@ -51,8 +50,7 @@ class Slot:
             f"delay={self.delay:.2f} randomize_delay={self.randomize_delay!r} "
             f"len(active)={len(self.active)} len(queue)={len(self.queue)} "
             f"len(transferring)={len(self.transferring)} "
-            f"lastseen={datetime.fromtimestamp(self.lastseen).isoformat()}>"
-        )
+            f"lastseen={datetime.fromtimestamp(self.lastseen).isoformat()}>")
 
 
 def _get_concurrency_delay(concurrency, spider, settings):
@@ -77,14 +75,18 @@ class Downloader:
         self.active = set()
         self.handlers = DownloadHandlers(crawler)
         self.total_concurrency = self.settings.getint('CONCURRENT_REQUESTS')
-        self.domain_concurrency = self.settings.getint('CONCURRENT_REQUESTS_PER_DOMAIN')
-        self.ip_concurrency = self.settings.getint('CONCURRENT_REQUESTS_PER_IP')
-        self.randomize_delay = self.settings.getbool('RANDOMIZE_DOWNLOAD_DELAY')
+        self.domain_concurrency = self.settings.getint(
+            'CONCURRENT_REQUESTS_PER_DOMAIN')
+        self.ip_concurrency = self.settings.getint(
+            'CONCURRENT_REQUESTS_PER_IP')
+        self.randomize_delay = self.settings.getbool(
+            'RANDOMIZE_DOWNLOAD_DELAY')
         self.middleware = DownloaderMiddlewareManager.from_crawler(crawler)
         self._slot_gc_loop = task.LoopingCall(self._slot_gc)
         self._slot_gc_loop.start(60)
 
     def fetch(self, request, spider):
+
         def _deactivate(response):
             self.active.remove(request)
             return response
@@ -143,7 +145,9 @@ class Downloader:
         if delay:
             penalty = delay - now + slot.lastseen
             if penalty > 0:
-                slot.latercall = reactor.callLater(penalty, self._process_queue, spider, slot)
+                slot.latercall = reactor.callLater(penalty,
+                                                   self._process_queue, spider,
+                                                   slot)
                 return
 
         # Process enqueued requests if there are free slots to transfer for this slot
@@ -171,6 +175,7 @@ class Downloader:
                                         request=request,
                                         spider=spider)
             return response
+
         dfd.addCallback(_downloaded)
 
         # 3. After response arrives, remove the request from transferring

@@ -5,14 +5,12 @@ from abc import abstractmethod
 from os.path import exists, join
 from typing import Optional, Type, TypeVar
 
-from twisted.internet.defer import Deferred
-
 from scrapy.crawler import Crawler
 from scrapy.http.request import Request
 from scrapy.spiders import Spider
 from scrapy.utils.job import job_dir
 from scrapy.utils.misc import create_instance, load_object
-
+from twisted.internet.defer import Deferred
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +19,17 @@ class BaseSchedulerMeta(type):
     """
     Metaclass to check scheduler classes against the necessary interface
     """
+
     def __instancecheck__(cls, instance):
         return cls.__subclasscheck__(type(instance))
 
     def __subclasscheck__(cls, subclass):
-        return (
-            hasattr(subclass, "has_pending_requests") and callable(subclass.has_pending_requests)
-            and hasattr(subclass, "enqueue_request") and callable(subclass.enqueue_request)
-            and hasattr(subclass, "next_request") and callable(subclass.next_request)
-        )
+        return (hasattr(subclass, "has_pending_requests")
+                and callable(subclass.has_pending_requests)
+                and hasattr(subclass, "enqueue_request")
+                and callable(subclass.enqueue_request)
+                and hasattr(subclass, "next_request")
+                and callable(subclass.next_request))
 
 
 class BaseScheduler(metaclass=BaseSchedulerMeta):
@@ -163,6 +163,7 @@ class Scheduler(BaseScheduler):
     :param crawler: The crawler object corresponding to the current crawl.
     :type crawler: :class:`scrapy.crawler.Crawler`
     """
+
     def __init__(
         self,
         dupefilter,
@@ -190,7 +191,8 @@ class Scheduler(BaseScheduler):
         """
         dupefilter_cls = load_object(crawler.settings['DUPEFILTER_CLASS'])
         return cls(
-            dupefilter=create_instance(dupefilter_cls, crawler.settings, crawler),
+            dupefilter=create_instance(dupefilter_cls, crawler.settings,
+                                       crawler),
             jobdir=job_dir(crawler.settings),
             dqclass=load_object(crawler.settings['SCHEDULER_DISK_QUEUE']),
             mqclass=load_object(crawler.settings['SCHEDULER_MEMORY_QUEUE']),
@@ -243,7 +245,8 @@ class Scheduler(BaseScheduler):
             self.stats.inc_value('scheduler/enqueued/disk', spider=self.spider)
         else:
             self._mqpush(request)
-            self.stats.inc_value('scheduler/enqueued/memory', spider=self.spider)
+            self.stats.inc_value('scheduler/enqueued/memory',
+                                 spider=self.spider)
         self.stats.inc_value('scheduler/enqueued', spider=self.spider)
         return True
 
@@ -258,11 +261,13 @@ class Scheduler(BaseScheduler):
         """
         request = self.mqs.pop()
         if request is not None:
-            self.stats.inc_value('scheduler/dequeued/memory', spider=self.spider)
+            self.stats.inc_value('scheduler/dequeued/memory',
+                                 spider=self.spider)
         else:
             request = self._dqpop()
             if request is not None:
-                self.stats.inc_value('scheduler/dequeued/disk', spider=self.spider)
+                self.stats.inc_value('scheduler/dequeued/disk',
+                                     spider=self.spider)
         if request is not None:
             self.stats.inc_value('scheduler/dequeued', spider=self.spider)
         return request
@@ -271,7 +276,8 @@ class Scheduler(BaseScheduler):
         """
         Return the total amount of enqueued requests
         """
-        return len(self.dqs) + len(self.mqs) if self.dqs is not None else len(self.mqs)
+        return len(self.dqs) + len(self.mqs) if self.dqs is not None else len(
+            self.mqs)
 
     def _dqpush(self, request: Request) -> bool:
         if self.dqs is None:
@@ -283,10 +289,15 @@ class Scheduler(BaseScheduler):
                 msg = ("Unable to serialize request: %(request)s - reason:"
                        " %(reason)s - no more unserializable requests will be"
                        " logged (stats being collected)")
-                logger.warning(msg, {'request': request, 'reason': e},
-                               exc_info=True, extra={'spider': self.spider})
+                logger.warning(msg, {
+                    'request': request,
+                    'reason': e
+                },
+                               exc_info=True,
+                               extra={'spider': self.spider})
                 self.logunser = False
-            self.stats.inc_value('scheduler/unserializable', spider=self.spider)
+            self.stats.inc_value('scheduler/unserializable',
+                                 spider=self.spider)
             return False
         else:
             return True
@@ -318,7 +329,8 @@ class Scheduler(BaseScheduler):
                             startprios=state)
         if q:
             logger.info("Resuming crawl (%(queuesize)d requests scheduled)",
-                        {'queuesize': len(q)}, extra={'spider': self.spider})
+                        {'queuesize': len(q)},
+                        extra={'spider': self.spider})
         return q
 
     def _dqdir(self, jobdir: Optional[str]) -> Optional[str]:

@@ -27,8 +27,7 @@ class SpiderLoader:
         dupes = []
         for name, locations in self._found.items():
             dupes.extend([
-                f"  {cls} named {name!r} (in {mod})"
-                for mod, cls in locations
+                f"  {cls} named {name!r} (in {mod})" for mod, cls in locations
                 if len(locations) > 1
             ])
 

@@ -20,7 +20,8 @@ class ItemPipelineManager(MiddlewareManager):
     def _add_middleware(self, pipe):
         super(ItemPipelineManager, self)._add_middleware(pipe)
         if hasattr(pipe, 'process_item'):
-            self.methods['process_item'].append(deferred_f_from_coro_f(pipe.process_item))
+            self.methods['process_item'].append(
+                deferred_f_from_coro_f(pipe.process_item))
 
     def process_item(self, item, spider):
         return self._process_chain('process_item', item, spider)

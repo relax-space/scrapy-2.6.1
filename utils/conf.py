@@ -6,7 +6,6 @@ from configparser import ConfigParser
 from operator import itemgetter
 
 from scrapy.exceptions import ScrapyDeprecationWarning, UsageError
-
 from scrapy.settings import BaseSettings
 from scrapy.utils.deprecate import update_classpath
 from scrapy.utils.python import without_none_values
@@ -17,8 +16,9 @@ def build_component_list(compdict, custom=None, convert=update_classpath):
 
     def _check_components(complist):
         if len({convert(c) for c in complist}) != len(complist):
-            raise ValueError(f'Some paths in {complist!r} convert to the same object, '
-                             'please update your settings')
+            raise ValueError(
+                f'Some paths in {complist!r} convert to the same object, '
+                'please update your settings')
 
     def _map_keys(compdict):
         if isinstance(compdict, BaseSettings):
@@ -26,10 +26,10 @@ def build_component_list(compdict, custom=None, convert=update_classpath):
             for k, v in compdict.items():
                 prio = compdict.getpriority(k)
                 if compbs.getpriority(convert(k)) == prio:
-                    raise ValueError(f'Some paths in {list(compdict.keys())!r} '
-                                     'convert to the same '
-                                     'object, please update your settings'
-                                     )
+                    raise ValueError(
+                        f'Some paths in {list(compdict.keys())!r} '
+                        'convert to the same '
+                        'object, please update your settings')
                 else:
                     compbs.set(convert(k), v, priority=prio)
             return compbs
@@ -41,8 +41,9 @@ def build_component_list(compdict, custom=None, convert=update_classpath):
         """Fail if a value in the components dict is not a real number or None."""
         for name, value in compdict.items():
             if value is not None and not isinstance(value, numbers.Real):
-                raise ValueError(f'Invalid value {value} for component {name}, '
-                                 'please provide a real number or None instead')
+                raise ValueError(
+                    f'Invalid value {value} for component {name}, '
+                    'please provide a real number or None instead')
 
     # BEGIN Backward compatibility for old (base, custom) call signature
     if isinstance(custom, (list, tuple)):
@@ -102,7 +103,8 @@ def get_config(use_closest=True):
 
 
 def get_sources(use_closest=True):
-    xdg_config_home = os.environ.get('XDG_CONFIG_HOME') or os.path.expanduser('~/.config')
+    xdg_config_home = os.environ.get('XDG_CONFIG_HOME') or os.path.expanduser(
+        '~/.config')
     sources = [
         '/etc/scrapy.cfg',
         r'c:\scrapy\scrapy.cfg',
@@ -116,7 +118,8 @@ def get_sources(use_closest=True):
 
 def feed_complete_default_values_from_settings(feed, settings):
     out = feed.copy()
-    out.setdefault("batch_item_count", settings.getint('FEED_EXPORT_BATCH_ITEM_COUNT'))
+    out.setdefault("batch_item_count",
+                   settings.getint('FEED_EXPORT_BATCH_ITEM_COUNT'))
     out.setdefault("encoding", settings["FEED_EXPORT_ENCODING"])
     out.setdefault("fields", settings.getlist("FEED_EXPORT_FIELDS") or None)
     out.setdefault("store_empty", settings.getbool("FEED_STORE_EMPTY"))
@@ -129,7 +132,9 @@ def feed_complete_default_values_from_settings(feed, settings):
     return out
 
 
-def feed_process_params_from_cli(settings, output, output_format=None,
+def feed_process_params_from_cli(settings,
+                                 output,
+                                 output_format=None,
                                  overwrite_output=None):
     """
     Receives feed export params (from the 'crawl' or 'runspider' commands),
@@ -137,8 +142,7 @@ def feed_process_params_from_cli(settings, output, output_format=None,
     suitable to be used as the FEEDS setting.
     """
     valid_output_formats = without_none_values(
-        settings.getwithbase('FEED_EXPORTERS')
-    ).keys()
+        settings.getwithbase('FEED_EXPORTERS')).keys()
 
     def check_valid_format(output_format):
         if output_format not in valid_output_formats:
@@ -146,15 +150,13 @@ def feed_process_params_from_cli(settings, output, output_format=None,
                 f"Unrecognized output format '{output_format}'. "
                 f"Set a supported one ({tuple(valid_output_formats)}) "
                 "after a colon at the end of the output URI (i.e. -o/-O "
-                "<URI>:<FORMAT>) or as a file extension."
-            )
+                "<URI>:<FORMAT>) or as a file extension.")
 
     overwrite = False
     if overwrite_output:
         if output:
             raise UsageError(
-                "Please use only one of -o/--output and -O/--overwrite-output"
-            )
+                "Please use only one of -o/--output and -O/--overwrite-output")
         output = overwrite_output
         overwrite = True
 
@@ -164,15 +166,13 @@ def feed_process_params_from_cli(settings, output, output_format=None,
             message = (
                 'The -t command line option is deprecated in favor of '
                 'specifying the output format within the output URI. See the '
-                'documentation of the -o and -O options for more information.'
-            )
+                'documentation of the -o and -O options for more information.')
             warnings.warn(message, ScrapyDeprecationWarning, stacklevel=2)
             return {output[0]: {'format': output_format}}
         else:
             raise UsageError(
                 'The -t command-line option cannot be used if multiple output '
-                'URIs are specified'
-            )
+                'URIs are specified')
 
     result = {}
     for element in output:

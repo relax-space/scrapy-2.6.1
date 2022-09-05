@@ -10,17 +10,18 @@ import pprint
 import warnings
 from xml.sax.saxutils import XMLGenerator
 
-from itemadapter import is_item, ItemAdapter
+from itemadapter import ItemAdapter, is_item
 
 from scrapy.exceptions import ScrapyDeprecationWarning
 from scrapy.item import Item
 from scrapy.utils.python import is_listlike, to_bytes, to_unicode
 from scrapy.utils.serialize import ScrapyJSONEncoder
 
-
-__all__ = ['BaseItemExporter', 'PprintItemExporter', 'PickleItemExporter',
-           'CsvItemExporter', 'XmlItemExporter', 'JsonLinesItemExporter',
-           'JsonItemExporter', 'MarshalItemExporter']
+__all__ = [
+    'BaseItemExporter', 'PprintItemExporter', 'PickleItemExporter',
+    'CsvItemExporter', 'XmlItemExporter', 'JsonLinesItemExporter',
+    'JsonItemExporter', 'MarshalItemExporter'
+]
 
 
 class BaseItemExporter:
@@ -54,7 +55,10 @@ class BaseItemExporter:
     def finish_exporting(self):
         pass
 
-    def _get_serialized_fields(self, item, default_value=None, include_empty=None):
+    def _get_serialized_fields(self,
+                               item,
+                               default_value=None,
+                               include_empty=None):
         """Return the fields to export as an iterable of tuples
         (name, serialized_value)
         """
@@ -77,7 +81,8 @@ class BaseItemExporter:
         for field_name in field_iter:
             if field_name in item:
                 field_meta = item.get_field_meta(field_name)
-                value = self.serialize_field(field_meta, field_name, item[field_name])
+                value = self.serialize_field(field_meta, field_name,
+                                             item[field_name])
             else:
                 value = default_value
 
@@ -195,7 +200,12 @@ class XmlItemExporter(BaseItemExporter):
 
 class CsvItemExporter(BaseItemExporter):
 
-    def __init__(self, file, include_headers_line=True, join_multivalued=',', errors=None, **kwargs):
+    def __init__(self,
+                 file,
+                 include_headers_line=True,
+                 join_multivalued=',',
+                 errors=None,
+                 **kwargs):
         super().__init__(dont_fail=True, **kwargs)
         if not self.encoding:
             self.encoding = 'utf-8'
@@ -205,7 +215,8 @@ class CsvItemExporter(BaseItemExporter):
             line_buffering=False,
             write_through=True,
             encoding=self.encoding,
-            newline='',  # Windows needs this https://github.com/scrapy/scrapy/issues/3034
+            newline=
+            '',  # Windows needs this https://github.com/scrapy/scrapy/issues/3034
             errors=errors,
         )
         self.csv_writer = csv.writer(self.stream, **self._kwargs)
@@ -229,7 +240,8 @@ class CsvItemExporter(BaseItemExporter):
             self._headers_not_written = False
             self._write_headers_and_set_fields_to_export(item)
 
-        fields = self._get_serialized_fields(item, default_value='',
+        fields = self._get_serialized_fields(item,
+                                             default_value='',
                                              include_empty=True)
         values = list(self._build_row(x for _, x in fields))
         self.csv_writer.writerow(values)

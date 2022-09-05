@@ -1,22 +1,20 @@
 """Helper functions which don't fit anywhere else"""
 import ast
+import hashlib
 import inspect
 import os
 import re
-import hashlib
 import warnings
 from collections import deque
 from contextlib import contextmanager
 from importlib import import_module
 from pkgutil import iter_modules
 
-from w3lib.html import replace_entities
-
-from scrapy.utils.datatypes import LocalWeakReferencedCache
-from scrapy.utils.python import flatten, to_unicode
 from scrapy.item import Item
+from scrapy.utils.datatypes import LocalWeakReferencedCache
 from scrapy.utils.deprecate import ScrapyDeprecationWarning
-
+from scrapy.utils.python import flatten, to_unicode
+from w3lib.html import replace_entities
 
 _ITERABLE_SINGLE_VALUES = dict, Item, str, bytes
 
@@ -29,7 +27,8 @@ def arg_to_iter(arg):
     """
     if arg is None:
         return []
-    elif not isinstance(arg, _ITERABLE_SINGLE_VALUES) and hasattr(arg, '__iter__'):
+    elif not isinstance(arg, _ITERABLE_SINGLE_VALUES) and hasattr(
+            arg, '__iter__'):
         return arg
     else:
         return [arg]
@@ -63,7 +62,8 @@ def load_object(path):
     try:
         obj = getattr(mod, name)
     except AttributeError:
-        raise NameError(f"Module '{module}' doesn't define any object named '{name}'")
+        raise NameError(
+            f"Module '{module}' doesn't define any object named '{name}'")
 
     return obj
 
@@ -100,23 +100,24 @@ def extract_regex(regex, text, encoding='utf-8'):
     warnings.warn(
         "scrapy.utils.misc.extract_regex has moved to parsel.utils.extract_regex.",
         ScrapyDeprecationWarning,
-        stacklevel=2
-    )
+        stacklevel=2)
 
     if isinstance(regex, str):
         regex = re.compile(regex, re.UNICODE)
 
     try:
-        strings = [regex.search(text).group('extract')]   # named group
+        strings = [regex.search(text).group('extract')]  # named group
     except Exception:
-        strings = regex.findall(text)    # full regex or numbered groups
+        strings = regex.findall(text)  # full regex or numbered groups
     strings = flatten(strings)
 
     if isinstance(text, str):
         return [replace_entities(s, keep=['lt', 'amp']) for s in strings]
     else:
-        return [replace_entities(to_unicode(s, encoding), keep=['lt', 'amp'])
-                for s in strings]
+        return [
+            replace_entities(to_unicode(s, encoding), keep=['lt', 'amp'])
+            for s in strings
+        ]
 
 
 def md5sum(file):
@@ -223,7 +224,8 @@ def is_generator_with_return_value(callable):
 
     def returns_none(return_node):
         value = return_node.value
-        return value is None or isinstance(value, ast.NameConstant) and value.value is None
+        return value is None or isinstance(
+            value, ast.NameConstant) and value.value is None
 
     if inspect.isgeneratorfunction(callable):
         code = re.sub(r"^[\t ]+", "", inspect.getsource(callable))

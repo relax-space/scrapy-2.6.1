@@ -2,9 +2,9 @@
 This module implements a class which returns the appropriate Response class
 based on different criteria.
 """
+from io import StringIO
 from mimetypes import MimeTypes
 from pkgutil import get_data
-from io import StringIO
 
 from scrapy.http import Response
 from scrapy.utils.misc import load_object
@@ -59,8 +59,8 @@ class ResponseTypes:
     def from_content_disposition(self, content_disposition):
         try:
             filename = to_unicode(
-                content_disposition, encoding='latin-1', errors='replace'
-            ).split(';')[1].split('=')[1].strip('"\'')
+                content_disposition, encoding='latin-1',
+                errors='replace').split(';')[1].split('=')[1].strip('"\'')
             return self.from_filename(filename)
         except IndexError:
             return Response
@@ -72,10 +72,10 @@ class ResponseTypes:
         if b'Content-Type' in headers:
             cls = self.from_content_type(
                 content_type=headers[b'Content-Type'],
-                content_encoding=headers.get(b'Content-Encoding')
-            )
+                content_encoding=headers.get(b'Content-Encoding'))
         if cls is Response and b'Content-Disposition' in headers:
-            cls = self.from_content_disposition(headers[b'Content-Disposition'])
+            cls = self.from_content_disposition(
+                headers[b'Content-Disposition'])
         return cls
 
     def from_filename(self, filename):

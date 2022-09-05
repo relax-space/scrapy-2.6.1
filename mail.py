@@ -17,9 +17,7 @@ from twisted.internet import defer, ssl
 from scrapy.utils.misc import arg_to_iter
 from scrapy.utils.python import to_bytes
 
-
 logger = logging.getLogger(__name__)
-
 
 # Defined in the email.utils module, but undocumented:
 # https://github.com/python/cpython/blob/v3.9.0/Lib/email/utils.py#L42
@@ -33,10 +31,16 @@ def _to_bytes_or_none(text):
 
 
 class MailSender:
-    def __init__(
-        self, smtphost='localhost', mailfrom='scrapy@localhost', smtpuser=None,
-        smtppass=None, smtpport=25, smtptls=False, smtpssl=False, debug=False
-    ):
+
+    def __init__(self,
+                 smtphost='localhost',
+                 mailfrom='scrapy@localhost',
+                 smtpuser=None,
+                 smtppass=None,
+                 smtpport=25,
+                 smtptls=False,
+                 smtpssl=False,
+                 debug=False):
         self.smtphost = smtphost
         self.smtpport = smtpport
         self.smtpuser = _to_bytes_or_none(smtpuser)
@@ -58,7 +62,15 @@ class MailSender:
             smtpssl=settings.getbool('MAIL_SSL'),
         )
 
-    def send(self, to, subject, body, cc=None, attachs=(), mimetype='text/plain', charset=None, _callback=None):
+    def send(self,
+             to,
+             subject,
+             body,
+             cc=None,
+             attachs=(),
+             mimetype='text/plain',
+             charset=None,
+             _callback=None):
         from twisted.internet import reactor
         if attachs:
             msg = MIMEMultipart()
@@ -86,19 +98,30 @@ class MailSender:
                 part = MIMEBase(*mimetype.split('/'))
                 part.set_payload(f.read())
                 Encoders.encode_base64(part)
-                part.add_header('Content-Disposition', 'attachment', filename=attach_name)
+                part.add_header('Content-Disposition',
+                                'attachment',
+                                filename=attach_name)
                 msg.attach(part)
         else:
             msg.set_payload(body)
 
         if _callback:
-            _callback(to=to, subject=subject, body=body, cc=cc, attach=attachs, msg=msg)
+            _callback(to=to,
+                      subject=subject,
+                      body=body,
+                      cc=cc,
+                      attach=attachs,
+                      msg=msg)
 
         if self.debug:
-            logger.debug('Debug mail sent OK: To=%(mailto)s Cc=%(mailcc)s '
-                         'Subject="%(mailsubject)s" Attachs=%(mailattachs)d',
-                         {'mailto': to, 'mailcc': cc, 'mailsubject': subject,
-                          'mailattachs': len(attachs)})
+            logger.debug(
+                'Debug mail sent OK: To=%(mailto)s Cc=%(mailcc)s '
+                'Subject="%(mailsubject)s" Attachs=%(mailattachs)d', {
+                    'mailto': to,
+                    'mailcc': cc,
+                    'mailsubject': subject,
+                    'mailattachs': len(attachs)
+                })
             return
 
         dfd = self._sendmail(rcpts, msg.as_string().encode(charset or 'utf-8'))
@@ -112,18 +135,27 @@ class MailSender:
         return dfd
 
     def _sent_ok(self, result, to, cc, subject, nattachs):
-        logger.info('Mail sent OK: To=%(mailto)s Cc=%(mailcc)s '
-                    'Subject="%(mailsubject)s" Attachs=%(mailattachs)d',
-                    {'mailto': to, 'mailcc': cc, 'mailsubject': subject,
-                     'mailattachs': nattachs})
+        logger.info(
+            'Mail sent OK: To=%(mailto)s Cc=%(mailcc)s '
+            'Subject="%(mailsubject)s" Attachs=%(mailattachs)d', {
+                'mailto': to,
+                'mailcc': cc,
+                'mailsubject': subject,
+                'mailattachs': nattachs
+            })
 
     def _sent_failed(self, failure, to, cc, subject, nattachs):
         errstr = str(failure.value)
-        logger.error('Unable to send mail: To=%(mailto)s Cc=%(mailcc)s '
-                     'Subject="%(mailsubject)s" Attachs=%(mailattachs)d'
-                     '- %(mailerr)s',
-                     {'mailto': to, 'mailcc': cc, 'mailsubject': subject,
-                      'mailattachs': nattachs, 'mailerr': errstr})
+        logger.error(
+            'Unable to send mail: To=%(mailto)s Cc=%(mailcc)s '
+            'Subject="%(mailsubject)s" Attachs=%(mailattachs)d'
+            '- %(mailerr)s', {
+                'mailto': to,
+                'mailcc': cc,
+                'mailsubject': subject,
+                'mailattachs': nattachs,
+                'mailerr': errstr
+            })
 
     def _sendmail(self, to_addrs, msg):
         # Import twisted.mail here because it is not available in python3
@@ -132,13 +164,21 @@ class MailSender:
         msg = BytesIO(msg)
         d = defer.Deferred()
         factory = ESMTPSenderFactory(
-            self.smtpuser, self.smtppass, self.mailfrom, to_addrs, msg, d,
-            heloFallback=True, requireAuthentication=False, requireTransportSecurity=self.smtptls,
+            self.smtpuser,
+            self.smtppass,
+            self.mailfrom,
+            to_addrs,
+            msg,
+            d,
+            heloFallback=True,
+            requireAuthentication=False,
+            requireTransportSecurity=self.smtptls,
         )
         factory.noisy = False
 
         if self.smtpssl:
-            reactor.connectSSL(self.smtphost, self.smtpport, factory, ssl.ClientContextFactory())
+            reactor.connectSSL(self.smtphost, self.smtpport, factory,
+                               ssl.ClientContextFactory())
         else:
             reactor.connectTCP(self.smtphost, self.smtpport, factory)
 

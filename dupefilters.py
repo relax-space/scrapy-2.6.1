@@ -10,13 +10,14 @@ from scrapy.spiders import Spider
 from scrapy.utils.job import job_dir
 from scrapy.utils.request import referer_str, request_fingerprint
 
-
 BaseDupeFilterTV = TypeVar("BaseDupeFilterTV", bound="BaseDupeFilter")
 
 
 class BaseDupeFilter:
+
     @classmethod
-    def from_settings(cls: Type[BaseDupeFilterTV], settings: BaseSettings) -> BaseDupeFilterTV:
+    def from_settings(cls: Type[BaseDupeFilterTV],
+                      settings: BaseSettings) -> BaseDupeFilterTV:
         return cls()
 
     def request_seen(self, request: Request) -> bool:
@@ -39,7 +40,9 @@ RFPDupeFilterTV = TypeVar("RFPDupeFilterTV", bound="RFPDupeFilter")
 class RFPDupeFilter(BaseDupeFilter):
     """Request Fingerprint duplicates filter"""
 
-    def __init__(self, path: Optional[str] = None, debug: bool = False) -> None:
+    def __init__(self,
+                 path: Optional[str] = None,
+                 debug: bool = False) -> None:
         self.file = None
         self.fingerprints: Set[str] = set()
         self.logdupes = True
@@ -51,7 +54,8 @@ class RFPDupeFilter(BaseDupeFilter):
             self.fingerprints.update(x.rstrip() for x in self.file)
 
     @classmethod
-    def from_settings(cls: Type[RFPDupeFilterTV], settings: BaseSettings) -> RFPDupeFilterTV:
+    def from_settings(cls: Type[RFPDupeFilterTV],
+                      settings: BaseSettings) -> RFPDupeFilterTV:
         debug = settings.getbool('DUPEFILTER_DEBUG')
         return cls(job_dir(settings), debug)
 
@@ -80,7 +84,8 @@ class RFPDupeFilter(BaseDupeFilter):
             msg = ("Filtered duplicate request: %(request)s"
                    " - no more duplicates will be shown"
                    " (see DUPEFILTER_DEBUG to show all duplicates)")
-            self.logger.debug(msg, {'request': request}, extra={'spider': spider})
+            self.logger.debug(msg, {'request': request},
+                              extra={'spider': spider})
             self.logdupes = False
 
         spider.crawler.stats.inc_value('dupefilter/filtered', spider=spider)
