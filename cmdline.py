@@ -107,10 +107,16 @@ def _run_print_help(parser, func, *a, **kw):
 
 
 def execute(argv=None, settings=None):
+    # argv是 ['scrapy', 'crawl', 'gitee-project'], gitee-project是自定义爬虫的name
     if argv is None:
         argv = sys.argv
 
     if settings is None:
+        '''
+        get_project_settings():
+        1. 设置环境变量: 从scapy.cfg中读取settings.py的路径, 并放到环境变量中os.environ['SCRAPY_SETTINGS_MODULE']
+        2. settings变量: 从settings.py读取数据到settings变量
+        '''
         settings = get_project_settings()
         # set EDITOR from environment if available
         try:
@@ -119,10 +125,12 @@ def execute(argv=None, settings=None):
             pass
         else:
             settings['EDITOR'] = editor
-
+    # 确保 setting.py文件存在于项目中,并且能正确导入
     inproject = inside_project()
+    # 获取scrapy.commands模块中, 所有继承ScrapyCommand类的实例
     cmds = _get_commands_dict(settings, inproject)
     cmdname = _pop_command_name(argv)
+    # 执行完上面一句之后: cmdname: crawl, argv: ['crawl', 'gitee-project']
     if not cmdname:
         _print_commands(settings, inproject)
         sys.exit(0)
@@ -138,10 +146,13 @@ def execute(argv=None, settings=None):
     settings.setdict(cmd.default_settings, priority='command')
     cmd.settings = settings
     cmd.add_options(parser)
+    # args: ['gitee-project']
     opts, args = parser.parse_known_args(args=argv[1:])
     _run_print_help(parser, cmd.process_options, args, opts)
 
+    # 初始化spider_loader,同时也初始化spider_loader._spiders, 程序入口: super().__init__(settings)
     cmd.crawler_process = CrawlerProcess(settings)
+    # 执行:_run_command
     _run_print_help(parser, _run_command, cmd, args, opts)
     sys.exit(cmd.exitcode)
 
@@ -150,6 +161,7 @@ def _run_command(cmd, args, opts):
     if opts.profile:
         _run_command_profiled(cmd, args, opts)
     else:
+        # gogo scrapy.commands.crawl.Command的run方法,参数args: ['gitee-project']
         cmd.run(args, opts)
 
 

@@ -75,9 +75,12 @@ class ExecutionEngine:
         self.spider: Optional[Spider] = None
         self.running = False
         self.paused = False
+        # 创建scheduler_cls
         self.scheduler_cls = self._get_scheduler_class(crawler.settings)
+        # 中间件管理器(下载) gogo scrapy.core.downloader.__init__.Downloader
         downloader_cls = load_object(self.settings['DOWNLOADER'])
         self.downloader = downloader_cls(crawler)
+        # 创建scraper
         self.scraper = Scraper(crawler)
         self._spider_closed_callback = spider_closed_callback
 
@@ -339,21 +342,31 @@ class ExecutionEngine:
             raise RuntimeError(
                 f"No free spider slot when opening {spider.name!r}")
         logger.info("Spider opened", extra={'spider': spider})
+        # 何时调用self._next_request?: 当调用 nextcall.schedule()的时候
         nextcall = CallLaterOnce(self._next_request)
+        # 创建scheduler实例
         scheduler = create_instance(self.scheduler_cls,
                                     settings=None,
                                     crawler=self.crawler)
+        # 执行蜘蛛中间件方法: process_start_requests
         start_requests = yield self.scraper.spidermw.process_start_requests(
             start_requests, spider)
+        # 创建slot对象: 其中创建了一个定时器:heartbeat, 但是没有启动
         self.slot = Slot(start_requests, close_if_idle, nextcall, scheduler)
         self.spider = spider
         if hasattr(scheduler, "open"):
+            # 初始化scheduler
             yield scheduler.open(spider)
+        # 执行pipeline中间件方法:open_spider
         yield self.scraper.open_spider(spider)
+        # 此例中什么都没有做, 执行pass
         self.crawler.stats.open_spider(spider)
+        # 发送信号signals.spider_opened, 所有接收者将会执行对应的方法
         yield self.signals.send_catch_log_deferred(signals.spider_opened,
                                                    spider=spider)
+        # 当reactor.run()执行之后,第一次执行请求:self._next_request
         self.slot.nextcall.schedule()
+        # 当reactor.run()执行之后,定时执行: 每隔5秒执行一次请求,self._next_request
         self.slot.heartbeat.start(5)
 
     def _spider_idle(self) -> None:

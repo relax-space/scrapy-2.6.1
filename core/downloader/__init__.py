@@ -73,6 +73,7 @@ class Downloader:
         self.signals = crawler.signals
         self.slots = {}
         self.active = set()
+        # 创建handlers实例: settings['DOWNLOAD_HANDLERS'] 和 settings['DOWNLOAD_HANDLERS_BASE']
         self.handlers = DownloadHandlers(crawler)
         self.total_concurrency = self.settings.getint('CONCURRENT_REQUESTS')
         self.domain_concurrency = self.settings.getint(
@@ -81,7 +82,9 @@ class Downloader:
             'CONCURRENT_REQUESTS_PER_IP')
         self.randomize_delay = self.settings.getbool(
             'RANDOMIZE_DOWNLOAD_DELAY')
+        # 实例化DownloaderMiddlewareManager, middlewares和methods属性: process_request,process_response,process_exception
         self.middleware = DownloaderMiddlewareManager.from_crawler(crawler)
+        # 设置定时器: 1分钟执行一次, 初始self.slots为空, _enqueue_request方法被调用后, self.slots会被赋值
         self._slot_gc_loop = task.LoopingCall(self._slot_gc)
         self._slot_gc_loop.start(60)
 

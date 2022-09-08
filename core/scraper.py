@@ -70,8 +70,10 @@ class Scraper:
 
     def __init__(self, crawler):
         self.slot: Optional[Slot] = None
+        # 中间件管理器(蜘蛛) : middlewares和methods属性: process_spider_input,process_start_requests,process_spider_output,process_spider_exception
         self.spidermw = SpiderMiddlewareManager.from_crawler(crawler)
         itemproc_cls = load_object(crawler.settings['ITEM_PROCESSOR'])
+        # 中间件管理器(pipeline)  middlewares和methods属性: process_item
         self.itemproc = itemproc_cls.from_crawler(crawler)
         self.concurrent_items = crawler.settings.getint('CONCURRENT_ITEMS')
         self.crawler = crawler

@@ -95,8 +95,11 @@ class Crawler:
         self.crawling = True
 
         try:
+            # 实例化蜘蛛对象
             self.spider = self._create_spider(*args, **kwargs)
+            # 实例化引擎
             self.engine = self._create_engine()
+            # 获取请求生成器, 注意:此时并没有执行, 此方法需要结合真实项目看scrapy_first
             start_requests = iter(self.spider.start_requests())
             yield self.engine.open_spider(self.spider, start_requests)
             yield defer.maybeDeferred(self.engine.start)

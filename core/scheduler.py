@@ -193,6 +193,7 @@ class Scheduler(BaseScheduler):
         return cls(
             dupefilter=create_instance(dupefilter_cls, crawler.settings,
                                        crawler),
+            # 适用磁盘存储: 设置这个属性即可: JOBDIR=crawls/somespider-1
             jobdir=job_dir(crawler.settings),
             dqclass=load_object(crawler.settings['SCHEDULER_DISK_QUEUE']),
             mqclass=load_object(crawler.settings['SCHEDULER_MEMORY_QUEUE']),

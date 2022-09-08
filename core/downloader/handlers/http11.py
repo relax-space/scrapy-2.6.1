@@ -375,6 +375,7 @@ class ScrapyAgent:
         else:
             bodyproducer = None
         start_time = time()
+        # http请求入口
         d = agent.request(method, to_bytes(url, encoding='ascii'), headers,
                           bodyproducer)
         # set download latency

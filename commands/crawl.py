@@ -20,7 +20,7 @@ class Command(BaseRunSpiderCommand):
                 "running 'scrapy crawl' with more than one spider is not supported"
             )
         spname = args[0]
-
+        # gogo scrapy.crawler.CrawlerRunner.crawl
         crawl_defer = self.crawler_process.crawl(spname, **opts.spargs)
 
         if getattr(crawl_defer, 'result', None) is not None and issubclass(
